@@ -1,0 +1,128 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="DomesticWarehousemanApp.Views.StorageLists">
+	
+    <ContentPage.Content>
+		
+        <StackLayout Background="#2F2F2F"
+					 VerticalOptions="Fill"
+					 Padding="10">
+
+			<Frame BackgroundColor="Transparent"
+				   Padding="0"
+				   CornerRadius="10" >
+				
+				<Grid BackgroundColor="#454545"
+					  Padding="0">
+
+					<Label Text="Fundamentals"
+						   FontSize="22"
+						   TextColor="White"
+						   HorizontalOptions="Start"
+						   Grid.Column="0"
+						   Grid.ColumnSpan="3"
+						   Padding="10">
+					</Label>
+
+					<Frame Grid.Column="3"
+						   Grid.ColumnSpan="1"
+						   Padding="10"
+						   BackgroundColor="ForestGreen"
+						   HorizontalOptions="End"
+						   VerticalOptions="Center">
+
+						<Label Text="12/12"
+							   FontSize="24"
+							   TextColor="White">
+						</Label>
+						
+					</Frame>
+
+				</Grid>
+				
+			</Frame>
+
+			<Frame BackgroundColor="Transparent"
+				   Padding="0"
+				   CornerRadius="10" >
+
+				<Grid BackgroundColor="#454545">
+
+					<Label Text="Samantha's birthday party"
+						   FontSize="22"
+						   TextColor="White"
+						   HorizontalOptions="Start"
+						   Grid.Column="0"
+						   Grid.ColumnSpan="3"
+						   Padding="10">
+					</Label>
+
+					<Frame Grid.Column="3"
+						   Grid.ColumnSpan="1"
+						   Padding="10"
+						   BackgroundColor="DarkOrange"
+						   HorizontalOptions="End"
+						   VerticalOptions="Center">
+
+						<Label Text="4/6"
+						   FontSize="24"
+						   TextColor="White"
+						   HorizontalOptions="End"
+						   Grid.Column="3"
+						   Grid.ColumnSpan="1">
+						</Label>
+
+					</Frame>
+
+				</Grid>
+
+			</Frame>
+
+			<Frame BackgroundColor="Transparent"
+				   Padding="0"
+				   CornerRadius="10" >
+
+				<Grid BackgroundColor="#454545">
+
+					<Label Text="Andy's school project"
+						   FontSize="22"
+						   TextColor="White"
+						   HorizontalOptions="Start"
+						   Grid.Column="0"
+						   Grid.ColumnSpan="3"
+						   Padding="10">
+					</Label>
+					
+					<Frame Grid.Column="3"
+						   Grid.ColumnSpan="1"
+						   Padding="10"
+						   BackgroundColor="DarkRed"
+						   HorizontalOptions="End"
+						   VerticalOptions="Center">
+						
+						<Label Text="0/7"
+							   FontSize="24"
+							   TextColor="White"
+							   HorizontalOptions="End"
+							   Grid.Column="3"
+							   Grid.ColumnSpan="1">
+						</Label>
+						
+					</Frame>
+
+				</Grid>
+
+			</Frame>
+
+		</StackLayout>
+		
+    </ContentPage.Content>
+
+	<ContentPage.Resources>
+
+		
+		
+	</ContentPage.Resources>
+	
+</ContentPage>
