@@ -19,10 +19,6 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\DomesticWarehousemanDtoLibrary\DomesticWarehousemanDtoLibrary.csproj" />
-  </ItemGroup>
-
   <ProjectExtensions><VisualStudio><UserProperties properties_4launchsettings_1json__JsonSchema="https://gitlab.com/fdroid/fdroiddata/-/raw/master/schemas/metadata.json" /></VisualStudio></ProjectExtensions>
 
 
