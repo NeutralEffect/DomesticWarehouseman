@@ -19,6 +19,7 @@ namespace DomesticWarehousemanWebApi.Data
 
         public virtual DbSet<Account> Accounts { get; set; }
         public virtual DbSet<ArchivedItem> ArchivedItems { get; set; }
+        public virtual DbSet<ArchivingReason> ArchivingReasons { get; set; }
         public virtual DbSet<Category> Categories { get; set; }
         public virtual DbSet<EssentialList> EssentialLists { get; set; }
         public virtual DbSet<Item> Items { get; set; }
@@ -45,6 +46,11 @@ namespace DomesticWarehousemanWebApi.Data
 
             modelBuilder.Entity<ArchivedItem>(entity =>
             {
+                entity.HasOne(d => d.IdArchivingReasonNavigation)
+                    .WithMany(p => p.ArchivedItems)
+                    .HasForeignKey(d => d.IdArchivingReason)
+                    .HasConstraintName("FK_ArchivedItem_ArchivingReason");
+
                 entity.HasOne(d => d.IdResourceNavigation)
                     .WithMany(p => p.ArchivedItems)
                     .HasForeignKey(d => d.IdResource)
@@ -93,13 +99,11 @@ namespace DomesticWarehousemanWebApi.Data
                 entity.HasOne(d => d.IdCategoryNavigation)
                     .WithMany(p => p.Resources)
                     .HasForeignKey(d => d.IdCategory)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_Resource_Category");
 
                 entity.HasOne(d => d.IdProviderNavigation)
                     .WithMany(p => p.Resources)
                     .HasForeignKey(d => d.IdProvider)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_Resource_Provider");
 
                 entity.HasOne(d => d.IdStorageNavigation)
@@ -152,16 +156,31 @@ namespace DomesticWarehousemanWebApi.Data
             modelBuilder.Entity<ShoppingListEntry>(entity =>
             {
                 entity.HasOne(d => d.IdResourceNavigation)
-                    .WithMany()
+                    .WithMany(p => p.ShoppingListEntries)
                     .HasForeignKey(d => d.IdResource)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_ShoppingListEntry_Resource");
 
                 entity.HasOne(d => d.IdShoppingListNavigation)
-                    .WithMany()
+                    .WithMany(p => p.ShoppingListEntries)
                     .HasForeignKey(d => d.IdShoppingList)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_ShoppingListEntry_ShoppingList");
+            });
+
+            modelBuilder.Entity<Storage>(entity =>
+            {
+                entity.HasOne(d => d.IdAccountCreatorNavigation)
+                    .WithMany(p => p.StorageIdAccountCreatorNavigations)
+                    .HasForeignKey(d => d.IdAccountCreator)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_Storage_Account");
+
+                entity.HasOne(d => d.IdAccountOwnerNavigation)
+                    .WithMany(p => p.StorageIdAccountOwnerNavigations)
+                    .HasForeignKey(d => d.IdAccountOwner)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_Storage_Account1");
             });
 
             modelBuilder.Entity<StorageMember>(entity =>

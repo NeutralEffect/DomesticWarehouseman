@@ -22,14 +22,16 @@ namespace DomesticWarehousemanWebApi.Data
         public DateTime? ExpiresOn { get; set; }
         [Column("archivedOn", TypeName = "datetime")]
         public DateTime ArchivedOn { get; set; }
-        [Column("archivingReason")]
-        [StringLength(100)]
-        public string ArchivingReason { get; set; }
+        [Column("idArchivingReason")]
+        public int? IdArchivingReason { get; set; }
         [Column("idResource")]
         public int IdResource { get; set; }
         [Column("idStorage")]
         public int IdStorage { get; set; }
 
+        [ForeignKey(nameof(IdArchivingReason))]
+        [InverseProperty(nameof(ArchivingReason.ArchivedItems))]
+        public virtual ArchivingReason IdArchivingReasonNavigation { get; set; }
         [ForeignKey(nameof(IdResource))]
         [InverseProperty(nameof(Resource.ArchivedItems))]
         public virtual Resource IdResourceNavigation { get; set; }

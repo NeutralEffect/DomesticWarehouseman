@@ -12,7 +12,7 @@ namespace DomesticWarehousemanWebApi.Security.Requirements
 
 		public StorageCommentatorRequirement()
 		{
-			this.RoleName = Constants.StorageCommentatorMembership;
+			this.RoleName = Constants.StorageCommentatorRole;
 		}
 	}
 }

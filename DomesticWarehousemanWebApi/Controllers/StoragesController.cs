@@ -1,66 +1,73 @@
-﻿using DomesticWarehousemanWebApi.DTO;
-using DomesticWarehousemanWebApi.Repos.Interface;
+﻿using DomesticWarehousemanWebApi.DTO.Storage;
 using DomesticWarehousemanWebApi.Security.Attributes;
-using DomesticWarehousemanWebApi.Security.Requirements;
+using DomesticWarehousemanWebApi.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace DomesticWarehousemanWebApi.Controllers
 {
 	[Route("api/[controller]")]
 	[ApiController]
-	[Authorize(Roles = Constants.AdministratorRole)]
+	[Authorize]
 	public class StoragesController : Controller
 	{
-		private readonly IAuthorizationService _authorizationService;
-		private readonly IStorageRepo _storageRepo;
+		private readonly IStoragesService _storagesService;
 
-		public StoragesController(IAuthorizationService authorizationService, IStorageRepo storageRepo): base()
+		public StoragesController(IStoragesService storagesService): base()
 		{
-			_authorizationService = authorizationService;
-			_storageRepo = storageRepo;
+			_storagesService = storagesService;
 		}
 
-		[HttpGet("{storageId}")]
-		[StorageMembershipAuthorize(Constants.StorageViewerMembership)]
-		public async Task<ActionResult<StorageViewDto>> ViewStorage(
-			[FromRoute(Name = "storageId")] int storageId)
+		[HttpPost("create")]
+		[Authorize(Roles = "User")]
+		public async Task<ActionResult> CreateStorage(
+			[FromBody] StorageCreateDto dto)
 		{
-			var storage = await _storageRepo
-				.GetFirstAsync(storage => storage.Id == storageId);
+			int accountId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+			int storageId = await _storagesService.CreateStorage(dto, accountId);
 
-			return Ok
+			return CreatedAtRoute
 			(
-				new StorageViewDto()
-				{
-					Name = storage.DisplayName,
-					Id = storage.Id,
-					ItemsCount = storage.Items.Count,
-					CreationDate = storage.CreatedOn,
-					UsersCount = storage.StorageMembers.Count
-				}
+				nameof(GetStorageDetails),
+				new { StorageId = storageId },
+				null
 			);
 		}
 
-		// POST: api/storage/create
-		[HttpPost("create")]
-		[Authorize(Roles = Constants.UserRole)]
-		public async Task<ActionResult> CreateStorage()
+		[HttpDelete("{storageId}")]
+		[StorageMemberAuthorize("Owner")]
+		public async Task<ActionResult> DeleteStorage(
+			[FromRoute(Name = "storageId")] int storageId)
 		{
-			return Ok();
+			throw new NotImplementedException();
 		}
 
-		// DELETE: api/storage/{id}
-		[HttpDelete("{id}")]
-		[StorageMembershipAuthorize(Constants.StorageEditorMembership)]
-		public async Task<ActionResult> DeleteStorage(
-			[FromRoute(Name = "id")] int id)
+		[HttpGet("{storageId}", Name = nameof(GetStorageDetails))]
+		[StorageMemberAuthorize]
+		public async Task<ActionResult<StorageDetailsDto>> GetStorageDetails(
+			[FromRoute(Name = "storageId")] int storageId)
 		{
-			return Ok();
+			throw new NotImplementedException();
+		}
+
+		[HttpGet("index", Name = nameof(IndexStoragesForAccount))]
+		[Authorize(Roles = "User")]
+		public async Task<ActionResult<StorageDetailsDto>> IndexStoragesForAccount()
+		{
+			int accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+			throw new NotImplementedException();
+		}
+
+		[HttpPut("{storageId}")]
+		[StorageMemberAuthorize("Editor")]
+		public async Task<ActionResult> UpdateStorage(
+			[FromRoute(Name = "storageId")] int storageId,
+			[FromBody] StorageUpdateDto dto)
+		{
+			throw new NotImplementedException();
 		}
 	}
 }

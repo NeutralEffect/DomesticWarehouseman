@@ -1,94 +1,94 @@
-﻿using DomesticWarehousemanWebApi.Data;
-using DomesticWarehousemanWebApi.DTO.Account;
-using DomesticWarehousemanWebApi.Repos.Interface;
-using DomesticWarehousemanWebApi.Security;
-using DomesticWarehousemanWebApi.Services;
+﻿using DomesticWarehousemanWebApi.DTO.Account;
+using DomesticWarehousemanWebApi.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace DomesticWarehousemanWebApi.Controllers
 {
 	[ApiController]
-	[Route("api/[controller]")]
+	[Route("api/accounts")]
 	[Authorize]
 	public class AccountsController : Controller
 	{
 		private readonly IAccountsService _accountsService;
-		private readonly IAccountRepo _accountRepo;
 
-		public AccountsController(IAccountsService accountsService, IAccountRepo accountRepo) : base()
+		public AccountsController(IAccountsService accountsService) : base()
 		{
 			_accountsService = accountsService;
-			_accountRepo = accountRepo;
 		}
 
-		[HttpGet("{id}", Name = nameof(ViewAccount))]
-		[Authorize(Roles = Constants.AdministratorRole)]
-		public async Task<ActionResult<AccountViewDto>> ViewAccount(
-			[FromRoute] int id)
+		[HttpGet("{accountId}", Name = nameof(GetAccountDetails))]
+		[Authorize(Roles = "Administrator", Policy = "AccountOwner")]
+		public async Task<ActionResult<AccountDetailsDto>> GetAccountDetails(
+			[FromRoute] int accountId)
 		{
-			var result = await _accountRepo
-				.GetFirstAsync(account => account.Id == id);
+			var result = await _accountsService.GetAccountDetails(accountId);
 
 			if (result is null)
 			{
 				return NotFound();
 			}
 
-			return Ok
-			(
-				new AccountViewDto()
-				{
-					Id = result.Id,
-					CreationDate = result.CreatedOn,
-					DisplayName = result.DisplayName,
-					Administrator = result.SystemAdministrator,
-					Email = result.Email
-				}
-			);
+			return Ok(result);
+		}
+
+		[HttpGet("index")]
+		[Authorize(Roles = "Administrator")]
+		public ActionResult<IEnumerable<AccountIndexDto>> IndexAccounts()
+		{
+			IEnumerable<AccountIndexDto> result = _accountsService
+				.IndexAccounts();
+
+			return Ok(result);
 		}
 
 		[HttpPost("register")]
 		[AllowAnonymous]
 		public async Task<ActionResult> RegisterAccount(
-			[FromBody] AccountRegisterDto arDto)
+			[FromBody] AccountRegisterDto dto)
 		{
-			var id = await _accountsService.RegisterAccount(arDto);
+			var accountId = await _accountsService
+				.RegisterAccount(dto);
 
-			return CreatedAtRoute(nameof(ViewAccount), new { id }, null);
+			return CreatedAtRoute
+			(
+				nameof(GetAccountDetails),
+				new { AccountId = accountId },
+				null
+			);
 		}
 
 		[HttpPost("signin")]
 		[AllowAnonymous]
 		public async Task<ActionResult> SignIn(
-			[FromBody] AccountSignInDto asiDto)
+			[FromBody] AccountSignInDto dto)
 		{
-			string token = await _accountsService.GenerateJwtToken(asiDto);
+			string token = await _accountsService
+				.GenerateJwtToken
+				(
+					dto.Email,
+					dto.Password
+				);
+
 			return Ok(token);
 		}
 
-		[HttpGet]
-		[Authorize(Roles = Constants.AdministratorRole)]
-		public ActionResult<IEnumerable<AccountIndexDto>> IndexAccounts()
+		[HttpPut("{accountId}")]
+		[Authorize(Policy = "AccountOwner")]
+		public async Task<ActionResult> UpdateAccount(
+			[FromBody] AccountUpdateDto dto)
 		{
-			var result = _accountRepo
-				.Get(account => true)
-				.Select
-				(
-					account =>
-					new AccountIndexDto()
-					{
-						DisplayName = account.DisplayName,
-						CreationDate = account.CreatedOn,
-						SystemAdministrator = account.SystemAdministrator,
-					}
-				);
+			var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
 
-			return Ok(result);
+			await _accountsService
+				.UpdateAccount(dto, accountId);
+
+			return Ok();
 		}
 	}
 }

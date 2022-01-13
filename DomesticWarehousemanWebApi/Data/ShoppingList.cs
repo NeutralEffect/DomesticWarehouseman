@@ -14,6 +14,7 @@ namespace DomesticWarehousemanWebApi.Data
         public ShoppingList()
         {
             ShoppingListComments = new HashSet<ShoppingListComment>();
+            ShoppingListEntries = new HashSet<ShoppingListEntry>();
         }
 
         [Key]
@@ -50,5 +51,7 @@ namespace DomesticWarehousemanWebApi.Data
         public virtual Storage IdStorageNavigation { get; set; }
         [InverseProperty(nameof(ShoppingListComment.IdShoppingListNavigation))]
         public virtual ICollection<ShoppingListComment> ShoppingListComments { get; set; }
+        [InverseProperty(nameof(ShoppingListEntry.IdShoppingListNavigation))]
+        public virtual ICollection<ShoppingListEntry> ShoppingListEntries { get; set; }
     }
 }

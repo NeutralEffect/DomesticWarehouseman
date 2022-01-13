@@ -16,6 +16,7 @@ namespace DomesticWarehousemanWebApi.Data
             ArchivedItems = new HashSet<ArchivedItem>();
             EssentialLists = new HashSet<EssentialList>();
             Items = new HashSet<Item>();
+            ShoppingListEntries = new HashSet<ShoppingListEntry>();
         }
 
         [Key]
@@ -37,9 +38,9 @@ namespace DomesticWarehousemanWebApi.Data
         [Column("image")]
         public byte[] Image { get; set; }
         [Column("idProvider")]
-        public int IdProvider { get; set; }
+        public int? IdProvider { get; set; }
         [Column("idCategory")]
-        public int IdCategory { get; set; }
+        public int? IdCategory { get; set; }
         [Column("idStorage")]
         public int? IdStorage { get; set; }
 
@@ -58,5 +59,7 @@ namespace DomesticWarehousemanWebApi.Data
         public virtual ICollection<EssentialList> EssentialLists { get; set; }
         [InverseProperty(nameof(Item.IdResourceNavigation))]
         public virtual ICollection<Item> Items { get; set; }
+        [InverseProperty(nameof(ShoppingListEntry.IdResourceNavigation))]
+        public virtual ICollection<ShoppingListEntry> ShoppingListEntries { get; set; }
     }
 }

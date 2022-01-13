@@ -12,7 +12,7 @@ namespace DomesticWarehousemanWebApi.Security.Requirements
 
 		public StorageEditorRequirement()
 		{
-			this.RoleName = Constants.StorageEditorMembership;
+			this.RoleName = Constants.StorageEditorRole;
 		}
 	}
 }

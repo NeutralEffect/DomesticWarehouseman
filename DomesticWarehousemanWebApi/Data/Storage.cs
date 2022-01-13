@@ -32,7 +32,17 @@ namespace DomesticWarehousemanWebApi.Data
         [Column("displayName")]
         [StringLength(100)]
         public string DisplayName { get; set; }
+        [Column("idAccountCreator")]
+        public int IdAccountCreator { get; set; }
+        [Column("idAccountOwner")]
+        public int IdAccountOwner { get; set; }
 
+        [ForeignKey(nameof(IdAccountCreator))]
+        [InverseProperty(nameof(Account.StorageIdAccountCreatorNavigations))]
+        public virtual Account IdAccountCreatorNavigation { get; set; }
+        [ForeignKey(nameof(IdAccountOwner))]
+        [InverseProperty(nameof(Account.StorageIdAccountOwnerNavigations))]
+        public virtual Account IdAccountOwnerNavigation { get; set; }
         [InverseProperty(nameof(ArchivedItem.IdStorageNavigation))]
         public virtual ICollection<ArchivedItem> ArchivedItems { get; set; }
         [InverseProperty(nameof(EssentialList.IdStorageNavigation))]

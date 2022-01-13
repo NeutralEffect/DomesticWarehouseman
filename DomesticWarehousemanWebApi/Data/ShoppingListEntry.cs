@@ -8,10 +8,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DomesticWarehousemanWebApi.Data
 {
-    [Keyless]
     [Table("ShoppingListEntry")]
     public partial class ShoppingListEntry
     {
+        [Key]
+        [Column("id")]
+        public int Id { get; set; }
         [Column("createdOn", TypeName = "datetime")]
         public DateTime CreatedOn { get; set; }
         [Column("updatedOn", TypeName = "datetime")]
@@ -26,8 +28,10 @@ namespace DomesticWarehousemanWebApi.Data
         public int IdShoppingList { get; set; }
 
         [ForeignKey(nameof(IdResource))]
+        [InverseProperty(nameof(Resource.ShoppingListEntries))]
         public virtual Resource IdResourceNavigation { get; set; }
         [ForeignKey(nameof(IdShoppingList))]
+        [InverseProperty(nameof(ShoppingList.ShoppingListEntries))]
         public virtual ShoppingList IdShoppingListNavigation { get; set; }
     }
 }

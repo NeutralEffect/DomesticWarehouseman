@@ -1,49 +1,58 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using DomesticWarehousemanWebApi.DTO.Resource;
+using DomesticWarehousemanWebApi.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace DomesticWarehousemanWebApi.Controllers
 {
-	[Route("api/[controller]")]
+	[Route("api/resources")]
 	[ApiController]
 	[Authorize]
 	public class ResourcesController : Controller
 	{
-		public ResourcesController() : base() { }
+		private readonly IResourcesService _resourcesService;
 
-		// GET: api/resource/{id}
-		[HttpGet("{id}")]
-		public async Task<ActionResult> GetResorceById(
-			[FromRoute(Name = "id")] int id)
+		public ResourcesController(IResourcesService resourcesService) : base()
 		{
-			return Ok();
+			_resourcesService = resourcesService;
 		}
 
-		// PUT: api/resource/{id}
-		[HttpPut("{id}")]
+		[HttpPost("new")]
+		public async Task<ActionResult> CreateResource(
+			[FromBody] ResourceCreateDto dto)
+		{
+			throw new NotImplementedException();
+		}
+
+		[HttpGet("{resourceId}")]
+		public ActionResult<ResourceDetailsDto> GetResourceDetails(
+		[FromRoute(Name = "resourceId")] int resourceId)
+		{
+			throw new NotImplementedException();
+		}
+
+		[HttpGet("index")]
+		public ActionResult<IEnumerable<ResourceIndexDto>> IndexResources()
+		{
+			throw new NotImplementedException();
+		}
+
+		[HttpPut("{resourceId}")]
 		public async Task<ActionResult> UpdateResource(
-			[FromRoute(Name = "id")] int id)
+			[FromRoute(Name = "resourceId")] int resourceId)
 		{
-			return Ok();
+			throw new NotImplementedException();
 		}
 
-		// POST: api/resource
-		[HttpPost]
-		public async Task<ActionResult> CreateResource()
-		{
-			return Ok();
-		}
-
-		// PUT: api/resource/merge?parentId={1}&childId={2}
-		[HttpPut("merge")]
+		[HttpPost("merge")]
+		[Authorize(Roles = "Administrator")]
 		public async Task<ActionResult> MergeResources(
-			[FromQuery(Name = "parentId")] int parentId,
-			[FromQuery(Name = "childId")] int childId)
+			[FromBody] ResourceMergeDto dto)
 		{
-			return Ok();
+			throw new NotImplementedException();
 		}
 	}
 }

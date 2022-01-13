@@ -28,7 +28,8 @@ namespace DomesticWarehousemanWebApi.Security.RequirementHandlers
 				var result = context.User.FindFirst
 				(
 					claim =>
-					claim.Type == Constants.StorageEditorMembership &&
+					(claim.Type == Constants.StorageEditorRole ||
+					claim.Type == Constants.StorageOwnerRole) &&
 					claim.Value == value
 				);
 

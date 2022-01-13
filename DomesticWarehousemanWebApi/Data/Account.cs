@@ -16,6 +16,8 @@ namespace DomesticWarehousemanWebApi.Data
             ShoppingListComments = new HashSet<ShoppingListComment>();
             ShoppingListIdAccountCreatorNavigations = new HashSet<ShoppingList>();
             ShoppingListIdAccountOwnerNavigations = new HashSet<ShoppingList>();
+            StorageIdAccountCreatorNavigations = new HashSet<Storage>();
+            StorageIdAccountOwnerNavigations = new HashSet<Storage>();
             StorageMembers = new HashSet<StorageMember>();
         }
 
@@ -47,6 +49,10 @@ namespace DomesticWarehousemanWebApi.Data
         public virtual ICollection<ShoppingList> ShoppingListIdAccountCreatorNavigations { get; set; }
         [InverseProperty(nameof(ShoppingList.IdAccountOwnerNavigation))]
         public virtual ICollection<ShoppingList> ShoppingListIdAccountOwnerNavigations { get; set; }
+        [InverseProperty(nameof(Storage.IdAccountCreatorNavigation))]
+        public virtual ICollection<Storage> StorageIdAccountCreatorNavigations { get; set; }
+        [InverseProperty(nameof(Storage.IdAccountOwnerNavigation))]
+        public virtual ICollection<Storage> StorageIdAccountOwnerNavigations { get; set; }
         [InverseProperty(nameof(StorageMember.IdAccountNavigation))]
         public virtual ICollection<StorageMember> StorageMembers { get; set; }
     }

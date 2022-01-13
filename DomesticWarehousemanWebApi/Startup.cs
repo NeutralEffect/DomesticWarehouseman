@@ -1,17 +1,14 @@
-//*
 using DomesticWarehousemanWebApi.Data;
 using DomesticWarehousemanWebApi.DTO.Account;
+using DomesticWarehousemanWebApi.Helpers;
 using DomesticWarehousemanWebApi.Middleware;
-using DomesticWarehousemanWebApi.Repos;
-using DomesticWarehousemanWebApi.Repos.Interface;
 using DomesticWarehousemanWebApi.Security.RequirementHandlers;
 using DomesticWarehousemanWebApi.Security.Requirements;
 using DomesticWarehousemanWebApi.Services;
-using DomesticWarehousemanWebApi.Validators;
+using DomesticWarehousemanWebApi.Services.Interfaces;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authorization;
-//*/
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -43,12 +40,24 @@ namespace DomesticWarehousemanWebApi
 		// This method gets called by the runtime. Use this method to add services to the container.
 		public void ConfigureServices(IServiceCollection services)
 		{
+			// Section: Misc
 			services
 				.AddControllers()
 				.AddFluentValidation();
 
 			services.AddHttpContextAccessor();
 
+			services.AddScoped<ErrorHandlingMiddleware>();
+
+			var applicationLimits = new ApplicationLimits();
+
+			Configuration
+				.GetSection("ApplicationLimits")
+				.Bind(applicationLimits);
+
+			services.AddSingleton(applicationLimits);
+
+			// Section: Authentication
 			var authenticationSettings = new AuthenticationSettings();
 
 			Configuration
@@ -56,6 +65,8 @@ namespace DomesticWarehousemanWebApi
 				.Bind(authenticationSettings);
 
 			services.AddSingleton(authenticationSettings);
+
+			services.AddScoped<IPasswordHasher<Account>, PasswordHasher<Account>>();
 
 			services.AddAuthentication
 			(
@@ -80,10 +91,12 @@ namespace DomesticWarehousemanWebApi
 					};
 				}
 			);
-
+			
+			// Section: Authorization
 			services.AddScoped<IAuthorizationHandler, StorageEditorRequirementHandler>();
 			services.AddScoped<IAuthorizationHandler, StorageCommentatorRequirementHandler>();
 			services.AddScoped<IAuthorizationHandler, StorageViewerRequirementHandler>();
+			services.AddScoped<IAuthorizationHandler, AccountOwnerRequirementHandler>();
 
 			services.AddAuthorization
 			(
@@ -97,6 +110,7 @@ namespace DomesticWarehousemanWebApi
 							policy.Requirements.Add(new StorageEditorRequirement());
 						}
 					);
+
 					options.AddPolicy
 					(
 						"StorageCommentator",
@@ -105,6 +119,7 @@ namespace DomesticWarehousemanWebApi
 							policy.Requirements.Add(new StorageCommentatorRequirement());
 						}
 					);
+
 					options.AddPolicy
 					(
 						"StorageViewer",
@@ -113,35 +128,34 @@ namespace DomesticWarehousemanWebApi
 							policy.Requirements.Add(new StorageViewerRequirement());
 						}
 					);
+
+					options.AddPolicy
+					(
+						"AccountOwner",
+						policy =>
+						{
+							policy.Requirements.Add(new AccountOwnerRequirement());
+						}
+					);
 				}
 			);
 
-			//*
+			// Section: Data
 			services.AddDbContext<DomesticWarehousemanDbContext>
 			(
 				options => options.UseSqlServer("Name=ConnectionStrings:DomesticWarehousemanDbDevelopment")
 			);
 
-			services.AddScoped<IPasswordHasher<Account>, PasswordHasher<Account>>();
-
 			services
-				.AddScoped<IArchivedItemRepo, SqlArchivedItemRepo>()
-				.AddScoped<ICategoryRepo, SqlCategoryRepo>()
-				.AddScoped<IEssentialListRepo, SqlEssentialListRepo>()
-				.AddScoped<IItemRepo, SqlItemRepo>()
-				.AddScoped<IProviderRepo, SqlProviderRepo>()
-				.AddScoped<IResourceRepo, SqlResourceRepo>()
-				.AddScoped<IShoppingListRepo, SqlShoppingListRepo>()
-				.AddScoped<IShoppingListEntryRepo, SqlShoppingListEntryRepo>()
-				.AddScoped<IStorageRepo, SqlStorageRepo>()
-				.AddScoped<IStorageMemberRepo, SqlStorageMemberRepo>()
-				.AddScoped<IAccountRepo, SqlAccountRepo>();
-
-			services.AddScoped<IAccountsService, AccountsService>();
+				.AddScoped<IAccountsService, AccountsService>()
+				.AddScoped<IEssentialListService, EssentialListService>()
+				.AddScoped<IItemsService, ItemsService>()
+				.AddScoped<IResourcesService, ResourcesService>()
+				.AddScoped<IShoppingListsService, ShoppingListsService>()
+				.AddScoped<IStorageMembersService, StorageMembersService>()
+				.AddScoped<IStoragesService, StoragesService>();
 
 			services.AddScoped<IValidator<AccountRegisterDto>, AccountRegisterDtoValidator>();
-			services.AddScoped<ErrorHandlingMiddleware>();
-			//*/
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

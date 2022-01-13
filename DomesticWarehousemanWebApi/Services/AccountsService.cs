@@ -3,88 +3,52 @@ using DomesticWarehousemanWebApi.DTO.Account;
 using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using DomesticWarehousemanWebApi.Repos.Interface;
 using DomesticWarehousemanWebApi.Exceptions;
 using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.IdentityModel.Tokens.Jwt;
-using DomesticWarehousemanWebApi.Security;
+using DomesticWarehousemanWebApi.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace DomesticWarehousemanWebApi.Services
 {
-	public interface IAccountsService
-	{
-		public Task<String> GenerateJwtToken(AccountSignInDto asiDto);
-		public Task<int> RegisterAccount(AccountRegisterDto arDto);
-	}
-
 	public class AccountsService : IAccountsService
 	{
-		private IPasswordHasher<Account> _passwordHasher;
-		private AuthenticationSettings _authenticationSettings;
-		private IAccountRepo _accountRepo;
+		private readonly DomesticWarehousemanDbContext _dbContext;
+		private readonly IPasswordHasher<Account> _passwordHasher;
+		private readonly AuthenticationSettings _authenticationSettings;
 
 		public AccountsService(
-			IAccountRepo accountRepo,
+			DomesticWarehousemanDbContext dbContext,
 			IPasswordHasher<Account> passwordHasher,
 			AuthenticationSettings authenticationSettings)
 		{
-			_accountRepo = accountRepo;
+			_dbContext = dbContext;
 			_passwordHasher = passwordHasher;
 			_authenticationSettings = authenticationSettings;
 		}
 
-		public async Task<int> RegisterAccount(AccountRegisterDto arDto)
+		public async Task<String> GenerateJwtToken(String email, String password)
 		{
-			if ((await _accountRepo.GetFirstAsync(account => account.Email == arDto.Email)) != null)
-			{
-				throw new BadRequestException("This email is already in use");
-			}
-
-			var account = new Account()
-			{
-				CreatedOn = DateTime.Now,
-				UpdatedOn = DateTime.Now,
-				Email = arDto.Email,
-				DisplayName = arDto.Email
-			};
-
-			account.PasswordHash = _passwordHasher.HashPassword(account, arDto.Password);
-
-			await _accountRepo.Add(account);
-			await _accountRepo.SaveChanges();
-
-			return account.Id;
-		}
-
-		public async Task<String> GenerateJwtToken(AccountSignInDto asiDto)
-		{
-			var account = await _accountRepo.GetAccountWithMemberships(asiDto.Email);
+			var account = await _dbContext.Accounts
+				.Include(account => account.StorageMembers)
+				.ThenInclude(storageMember => storageMember.IdRoleNavigation)
+				.FirstOrDefaultAsync(account => account.Email == email);
 
 			if (account is null)
 			{
-				var message =
-					"Invalid " +
-					nameof(asiDto.Email).ToLower() +
-					" or " +
-					nameof(asiDto.Password).ToLower();
-				throw new BadRequestException(message);
+				throw new BadRequestException("Invalid email or password");
 			}
 
-			var result = _passwordHasher.VerifyHashedPassword(account, account.PasswordHash, asiDto.Password);
+			var result = _passwordHasher.VerifyHashedPassword(account, account.PasswordHash, password);
 
 			if (result == PasswordVerificationResult.Failed)
 			{
-				var message =
-					"Invalid " +
-					nameof(asiDto.Email).ToLower() +
-					" or " +
-					nameof(asiDto.Password).ToLower();
-				throw new BadRequestException(message);
+				throw new BadRequestException("Invalid email or password");
 			}
 
 			var claims = new List<Claim>()
@@ -95,8 +59,8 @@ namespace DomesticWarehousemanWebApi.Services
 				new Claim
 				(
 					ClaimTypes.Role, account.SystemAdministrator ? 
-					Constants.AdministratorRole :
-					Constants.UserRole
+					Constants.SystemAdministratorRole :
+					Constants.SystemUserRole
 				)
 			};
 
@@ -129,6 +93,104 @@ namespace DomesticWarehousemanWebApi.Services
 			var tokenHandler = new JwtSecurityTokenHandler();
 
 			return tokenHandler.WriteToken(jwtToken);
+		}
+
+		public async Task<AccountDetailsDto> GetAccountDetails(int accountId)
+		{
+			var account = await _dbContext.Accounts
+				.FirstOrDefaultAsync(account => account.Id == accountId);
+
+			if (account == null)
+			{
+				throw new NotFoundException("Account does not exist");
+			}
+
+			return new AccountDetailsDto()
+			{
+				Id = account.Id,
+				DisplayName = account.DisplayName,
+				CreationDate = account.CreatedOn,
+				Email = account.Email
+			};
+		}
+
+		public IEnumerable<AccountIndexDto> IndexAccounts()
+		{
+			var result = _dbContext.Accounts
+				.Select
+				(
+					account =>
+					new AccountIndexDto()
+					{
+						Id = account.Id,
+						DisplayName = account.DisplayName,
+						SystemAdministrator = account.SystemAdministrator
+					}
+				);
+
+			return result;
+		}
+
+		/// <summary>
+		/// Creates new account and saves it in the database
+		/// </summary>
+		/// <param name="email">Email for created account</param>
+		/// <param name="password">Password for created account</param>
+		/// <param name="confirmPassword">Password confirmation, must match password</param>
+		/// <returns>Id of created account</returns>
+		public async Task<int> RegisterAccount(AccountRegisterDto dto)
+		{
+			if ((await _dbContext.Accounts.FirstOrDefaultAsync(account => account.Email == dto.Email)) != null)
+			{
+				throw new BadRequestException("This email is already in use");
+			}
+
+			var account = new Account()
+			{
+				CreatedOn = DateTime.Now,
+				UpdatedOn = DateTime.Now,
+				Email = dto.Email,
+				DisplayName = dto.Email
+			};
+
+			account.PasswordHash = _passwordHasher.HashPassword(account, dto.Password);
+
+			var entry = _dbContext.Accounts.Add(account);
+			await _dbContext.SaveChangesAsync();
+
+			return account.Id;
+		}
+
+		public async Task UpdateAccount(AccountUpdateDto dto, int accountId)
+		{
+			var account = await _dbContext.Accounts
+				.FirstOrDefaultAsync(account => account.Id == accountId);
+
+			if (account == null)
+			{
+				throw new NotFoundException("Account not found");
+			}
+
+			bool changed = false;
+
+			if (dto.NewEmail != null)
+			{
+				changed = true;
+				account.Email = dto.NewEmail;
+			}
+
+			if (dto.NewDisplayName != null)
+			{
+				changed = true;
+				account.DisplayName = dto.NewDisplayName;
+			}
+
+			if (changed)
+			{
+				account.UpdatedOn = DateTime.Now;
+				_dbContext.Entry(account).State = EntityState.Modified;
+				await _dbContext.SaveChangesAsync();
+			}
 		}
 	}
 }
