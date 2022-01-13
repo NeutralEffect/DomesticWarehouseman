@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace DomesticWarehousemanWebApi.Controllers
@@ -27,7 +28,20 @@ namespace DomesticWarehousemanWebApi.Controllers
 			[FromRoute(Name = "storageId")] int storageId,
 			[FromBody] ShoppingListCreateDto dto)
 		{
-			throw new NotImplementedException();
+			int accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+
+			int listId = await _shoppingListsService.CreateShoppingList(dto, storageId, accountId);
+
+			return CreatedAtRoute
+			(
+				nameof(GetShoppingListDetails), 
+				new
+				{
+					StorageId = storageId, 
+					ListId = listId
+				}, 
+				null
+			);
 		}
 
 		[HttpPost("storages/{storageId}/shoppinglists/fromessential")]
@@ -45,7 +59,9 @@ namespace DomesticWarehousemanWebApi.Controllers
 			[FromRoute(Name = "storageId")] int storageId,
 			[FromRoute(Name = "listId")] int listId)
 		{
-			throw new NotImplementedException();
+			await _shoppingListsService.DeleteShoppingList(storageId, listId);
+
+			return Ok();
 		}
 
 		[HttpGet("storages/{storageId}/shoppinglists/{listId}", Name = nameof(GetShoppingListDetails))]
@@ -54,7 +70,9 @@ namespace DomesticWarehousemanWebApi.Controllers
 			[FromRoute(Name = "storageId")] int storageId,
 			[FromRoute(Name = "listId")] int listId)
 		{
-			throw new NotImplementedException();
+			var result = _shoppingListsService.GetShoppingListDetails(storageId, listId);
+
+			return Ok(result);
 		}
 
 		[HttpGet("storages/{storageId}/shoppinglists/index")]
@@ -62,7 +80,9 @@ namespace DomesticWarehousemanWebApi.Controllers
 		public async Task<ActionResult<IEnumerable<ShoppingListIndexDto>>> IndexShoppingLists(
 			[FromRoute(Name = "storageId")] int storageId)
 		{
-			throw new NotImplementedException();
+			var result = _shoppingListsService.IndexShoppingLists(storageId);
+
+			return Ok(result);
 		}
 
 		[HttpPut("storages/{storageId}/shoppinglists/{listId}")]
@@ -72,7 +92,9 @@ namespace DomesticWarehousemanWebApi.Controllers
 			[FromRoute(Name = "listId")] int listId,
 			[FromBody] ShoppingListUpdateDto dto)
 		{
-			throw new NotImplementedException();
+			await _shoppingListsService.UpdateShoppingList(dto, storageId, listId);
+
+			return NoContent();
 		}
 	}
 }
